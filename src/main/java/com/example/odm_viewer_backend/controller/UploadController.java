@@ -5,13 +5,20 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
+import com.example.odm_viewer_backend.model.OdmStructure;
+import com.example.odm_viewer_backend.service.OdmParser;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class UploadController {
 
+    @Autowired
+    private OdmParser odmParserService;
+
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file uploaded.");
@@ -39,7 +46,10 @@ public class UploadController {
             System.out.println("Size: " + fileSize + " bytes");
             System.out.println("Content type: " + contentType);
 
-            return ResponseEntity.ok("File validated and received successfully. File name: " + fileName);
+            OdmStructure odmStructure = odmParserService.parseOdmFile(file);
+            System.out.println("ODM parsing completed - Study: " + odmStructure.getStudyName());
+
+            return ResponseEntity.ok(odmStructure);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
