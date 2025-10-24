@@ -23,8 +23,10 @@ public class UploadController {
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file uploaded.");
         }
+
         String fileName = file.getOriginalFilename();
         String contentType = file.getContentType();
+
         if (fileName == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File name is missing.");
         }
@@ -46,10 +48,19 @@ public class UploadController {
             System.out.println("Size: " + fileSize + " bytes");
             System.out.println("Content type: " + contentType);
 
+            // Poziv novog parsera
             OdmStructure odmStructure = odmParserService.parseOdmFile(file);
-            System.out.println("ODM parsing completed - Study: " + odmStructure.getStudyName());
 
+            // Provera da li Study postoji u parsiranom fajlu
+            if (odmStructure.getStudy() != null) {
+                System.out.println("ODM parsing completed - Study: " + odmStructure.getStudy().getStudyName());
+            } else {
+                System.out.println("ODM parsing completed - No Study element found.");
+            }
+
+            // Vraćamo kompletan objekat koji sadrži Study i ClinicalData hijerarhiju
             return ResponseEntity.ok(odmStructure);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
