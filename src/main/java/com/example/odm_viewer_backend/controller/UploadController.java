@@ -48,17 +48,17 @@ public class UploadController {
             System.out.println("Size: " + fileSize + " bytes");
             System.out.println("Content type: " + contentType);
 
-            // Poziv novog parsera
             OdmStructure odmStructure = odmParserService.parseOdmFile(file);
 
-            // Provera da li Study postoji u parsiranom fajlu
             if (odmStructure.getStudy() != null) {
                 System.out.println("ODM parsing completed - Study: " + odmStructure.getStudy().getStudyName());
+            } else if (odmStructure.getMetaDataVersion() != null) {
+                System.out.println(
+                        "ODM parsing completed - MetaDataVersion: " + odmStructure.getMetaDataVersion().getName());
             } else {
-                System.out.println("ODM parsing completed - No Study element found.");
+                System.out.println("ODM parsing completed - No Study or MetaDataVersion found.");
             }
 
-            // Vraćamo kompletan objekat koji sadrži Study i ClinicalData hijerarhiju
             return ResponseEntity.ok(odmStructure);
 
         } catch (Exception e) {

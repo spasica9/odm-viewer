@@ -13,6 +13,9 @@ public class OdmStructure {
     private Study study;
     private ClinicalData clinicalData;
 
+    private MetaDataVersion metaDataVersion;
+    private Protocol protocol;
+
     public String getXmlns() {
         return xmlns;
     }
@@ -91,6 +94,22 @@ public class OdmStructure {
 
     public void setClinicalData(ClinicalData clinicalData) {
         this.clinicalData = clinicalData;
+    }
+
+    public MetaDataVersion getMetaDataVersion() {
+        return metaDataVersion;
+    }
+
+    public void setMetaDataVersion(MetaDataVersion metaDataVersion) {
+        this.metaDataVersion = metaDataVersion;
+    }
+
+    public Protocol getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
     }
 
 }

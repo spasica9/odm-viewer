@@ -32,6 +32,16 @@ public class OdmParser {
             StudyEventData currentStudyEventData = null;
             ItemGroupData currentItemGroupData = null;
             ItemData currentItemData = null;
+            WorkflowDef currentWorkflowDef = null;
+            Branching currentBranching = null;
+            Transition currentTransition = null;
+            OdmElement currentOdmElement = null;
+            Protocol currentProtocol = null;
+            StudyTiming currentStudyTiming = null;
+            TransitionTimingConstraint currentTimingConstraint = null;
+            Arm currentArm = null;
+            Epoch currentEpoch = null;
+            StudyEventGroupDef currentSEGDef = null;
 
             while (reader.hasNext()) {
                 int event = reader.next();
@@ -68,8 +78,175 @@ public class OdmParser {
                                 currentMDV.setItemGroupDefs(new ArrayList<>());
                                 currentMDV.setItemDefs(new ArrayList<>());
                                 currentMDV.setCodeLists(new ArrayList<>());
-                                if (currentStudy != null)
+
+                                if (currentStudy != null) {
                                     currentStudy.setMetaDataVersion(currentMDV);
+                                } else {
+                                    odm.setMetaDataVersion(currentMDV);
+                                }
+                                break;
+
+                            case "Protocol":
+                                currentProtocol = new Protocol();
+                                currentProtocol.setName(reader.getAttributeValue(null, "Name"));
+                                currentProtocol.setWorkflows(new ArrayList<>());
+                                currentProtocol.setArms(new ArrayList<>());
+                                currentProtocol.setEpochs(new ArrayList<>());
+                                odm.setProtocol(currentProtocol);
+                                break;
+
+                            case "Arm":
+                                currentArm = new Arm();
+                                currentArm.setOid(reader.getAttributeValue(null, "OID"));
+                                currentArm.setName(reader.getAttributeValue(null, "Name"));
+                                if (currentProtocol != null)
+                                    currentProtocol.getArms().add(currentArm);
+                                break;
+
+                            case "Epoch":
+                                currentEpoch = new Epoch();
+                                currentEpoch.setOid(reader.getAttributeValue(null, "OID"));
+                                currentEpoch.setName(reader.getAttributeValue(null, "Name"));
+                                String seq = reader.getAttributeValue(null, "SequenceNumber");
+                                currentEpoch.setSequenceNumber(seq != null ? Integer.parseInt(seq) : 0);
+                                if (currentProtocol != null)
+                                    currentProtocol.getEpochs().add(currentEpoch);
+                                break;
+
+                            case "StudyEventGroupDef":
+                                currentSEGDef = new StudyEventGroupDef();
+                                currentSEGDef.setOid(reader.getAttributeValue(null, "OID"));
+                                currentSEGDef.setName(reader.getAttributeValue(null, "Name"));
+                                currentSEGDef.setArmOID(reader.getAttributeValue(null, "ArmOID"));
+                                currentSEGDef.setEpochOID(reader.getAttributeValue(null, "EpochOID"));
+                                currentSEGDef.setDescription(""); // pripremi prazno, popuni u Description
+                                if (currentMDV != null)
+                                    currentMDV.getStudyEventGroupDefs().add(currentSEGDef);
+                                break;
+
+                            case "StudyEventGroupRef":
+                                if (currentSEGDef != null) {
+                                    currentSEGDef.setStudyEventGroupRefOID(
+                                            reader.getAttributeValue(null, "StudyEventGroupOID"));
+                                }
+                                break;
+
+                            case "Description":
+                                if (reader.nextTag() == XMLStreamConstants.START_ELEMENT &&
+                                        "TranslatedText".equals(reader.getLocalName())) {
+                                    String text = reader.getElementText();
+                                    if (currentSEGDef != null) {
+                                        currentSEGDef.setDescription(text);
+                                    } else if (currentArm != null) {
+                                        currentArm.setDescription(text);
+                                    } else if (currentEpoch != null) {
+                                        currentEpoch.setDescription(text);
+                                    } else if (currentProtocol != null) {
+                                        currentProtocol.setDescription(text);
+                                    }
+                                }
+                                break;
+                            case "StudyTiming":
+                                currentStudyTiming = new StudyTiming();
+                                currentStudyTiming.setOid(reader.getAttributeValue(null, "OID"));
+                                currentStudyTiming.setName(reader.getAttributeValue(null, "Name"));
+                                if (currentProtocol != null)
+                                    currentProtocol.getStudyTimings().add(currentStudyTiming);
+                                break;
+
+                            case "TransitionTimingConstraint":
+                                currentTimingConstraint = new TransitionTimingConstraint();
+                                currentTimingConstraint.setOid(reader.getAttributeValue(null, "OID"));
+                                currentTimingConstraint.setName(reader.getAttributeValue(null, "Name"));
+                                currentTimingConstraint
+                                        .setTransitionOID(reader.getAttributeValue(null, "TransitionOID"));
+                                currentTimingConstraint
+                                        .setTimepointTarget(reader.getAttributeValue(null, "TimepointTarget"));
+                                currentTimingConstraint
+                                        .setTimepointPreWindow(reader.getAttributeValue(null, "TimepointPreWindow"));
+                                currentTimingConstraint
+                                        .setTimepointPostWindow(reader.getAttributeValue(null, "TimepointPostWindow"));
+                                if (currentStudyTiming != null)
+                                    currentStudyTiming.getTransitionTimingConstraints().add(currentTimingConstraint);
+                                break;
+
+                            case "TranslatedText":
+                                String text = normalizeText(reader.getElementText());
+
+                                if (currentArm != null) {
+                                    currentArm.setDescription(text);
+                                } else if (currentEpoch != null) {
+                                    currentEpoch.setDescription(text);
+                                } else if (currentProtocol != null && currentProtocol.getDescription() == null) {
+                                    currentProtocol.setDescription(text);
+                                } else if (currentSEGDef != null) {
+                                    currentSEGDef.setDescription(text);
+                                }
+                                break;
+
+                            case "WorkflowDef":
+                                currentWorkflowDef = new WorkflowDef();
+                                currentWorkflowDef.setOid(reader.getAttributeValue(null, "OID"));
+                                currentWorkflowDef.setName(normalizeText(reader.getAttributeValue(null, "Name")));
+                                currentWorkflowDef.setDescription("");
+                                if (currentMDV != null)
+                                    currentMDV.getWorkflowDefs().add(currentWorkflowDef);
+                                break;
+
+                            case "WorkflowStart":
+                                if (currentWorkflowDef != null) {
+                                    OdmElement start = new OdmElement();
+                                    start.setTagName("WorkflowStart");
+                                    start.getAttributes().put("StartOID", reader.getAttributeValue(null, "StartOID"));
+                                    currentWorkflowDef.getGenericElements().add(start);
+                                }
+                                break;
+
+                            case "Transition":
+                                currentTransition = new Transition();
+                                currentTransition.setOid(reader.getAttributeValue(null, "OID"));
+                                currentTransition.setFrom(reader.getAttributeValue(null, "SourceOID"));
+                                currentTransition.setTo(reader.getAttributeValue(null, "TargetOID"));
+                                currentTransition.setConditionOID(reader.getAttributeValue(null, "ConditionOID"));
+                                currentTransition.setName(normalizeText(reader.getAttributeValue(null, "Name")));
+                                currentTransition.setDescription("");
+                                if (currentWorkflowDef != null)
+                                    currentWorkflowDef.getTransitions().add(currentTransition);
+                                break;
+
+                            case "Branching":
+                                currentBranching = new Branching();
+                                currentBranching.setOid(reader.getAttributeValue(null, "OID"));
+                                currentBranching.setName(normalizeText(reader.getAttributeValue(null, "Name")));
+                                currentBranching.setType(reader.getAttributeValue(null, "Type"));
+                                if (currentWorkflowDef != null)
+                                    currentWorkflowDef.getBranchings().add(currentBranching);
+                                break;
+
+                            case "TargetTransition":
+                                if (currentBranching != null && currentTransition != null) {
+                                    Transition target = new Transition();
+                                    target.setOid(reader.getAttributeValue(null, "TargetTransitionOID"));
+                                    target.setConditionOID(reader.getAttributeValue(null, "ConditionOID"));
+                                    currentBranching.getTargetTransitions().add(target);
+                                }
+                                break;
+
+                            case "DefaultTransition":
+                                if (currentBranching != null) {
+                                    Transition defaultTrans = new Transition();
+                                    defaultTrans.setOid(reader.getAttributeValue(null, "TargetTransitionOID"));
+                                    currentBranching.setDefaultTransition(defaultTrans);
+                                }
+                                break;
+
+                            case "WorkflowEnd":
+                                if (currentWorkflowDef != null) {
+                                    OdmElement workflowEnd = new OdmElement();
+                                    workflowEnd.setTagName("WorkflowEnd");
+                                    workflowEnd.getAttributes().put("EndOID", reader.getAttributeValue(null, "EndOID"));
+                                    currentWorkflowDef.getGenericElements().add(workflowEnd);
+                                }
                                 break;
 
                             case "StudyEventDef":
@@ -163,15 +340,6 @@ public class OdmParser {
                                 }
                                 break;
 
-                            case "TranslatedText":
-                                String text = reader.getElementText();
-                                if (currentItemDef != null) {
-                                    currentItemDef.setQuestionText(normalizeText(text));
-                                } else if (currentCodeListItem != null) {
-                                    currentCodeListItem.setTranslatedText(normalizeText(text));
-                                }
-                                break;
-
                             case "ClinicalData":
                                 currentClinicalData = new ClinicalData();
                                 currentClinicalData.setStudyOID(reader.getAttributeValue(null, "StudyOID"));
@@ -220,6 +388,16 @@ public class OdmParser {
                                     currentItemData.setValue(val != null ? val.trim() : null);
                                 }
                                 break;
+
+                            default:
+                                currentOdmElement = new OdmElement();
+                                currentOdmElement.setTagName(localName);
+                                int attrCount = reader.getAttributeCount();
+                                for (int i = 0; i < attrCount; i++) {
+                                    currentOdmElement.getAttributes().put(reader.getAttributeLocalName(i),
+                                            reader.getAttributeValue(i));
+                                }
+                                break;
                         }
                         break;
 
@@ -254,6 +432,37 @@ public class OdmParser {
                                 if (currentItemGroupData != null && currentItemData != null)
                                     currentItemGroupData.getItemDataList().add(currentItemData);
                                 currentItemData = null;
+                                break;
+                            case "WorkflowDef":
+                                currentWorkflowDef = null;
+                                break;
+                            case "Transition":
+                                currentTransition = null;
+                                break;
+                            case "Branching":
+                                currentBranching = null;
+                                break;
+                            case "StudyTiming":
+                                currentStudyTiming = null;
+                                break;
+                            case "TransitionTimingConstraint":
+                                currentTimingConstraint = null;
+                                break;
+                            case "Protocol":
+                                currentProtocol = null;
+                                break;
+                            case "Arm":
+                                currentArm = null;
+                                break;
+                            case "Epoch":
+                                currentEpoch = null;
+                                break;
+
+                            case "StudyEventGroupDef":
+                                currentSEGDef = null;
+                                break;
+                            default:
+                                currentOdmElement = null;
                                 break;
                         }
                         break;

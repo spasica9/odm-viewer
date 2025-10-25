@@ -1,5 +1,6 @@
 package com.example.odm_viewer_backend.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MetaDataVersion {
@@ -9,6 +10,9 @@ public class MetaDataVersion {
     private List<ItemGroupDef> itemGroupDefs;
     private List<ItemDef> itemDefs;
     private List<CodeList> codeLists;
+    private List<ConditionDef> conditionDefs = new ArrayList<>();
+    private List<WorkflowDef> workflowDefs = new ArrayList<>();
+    private List<StudyEventGroupDef> studyEventGroupDefs = new ArrayList<>();
 
     public String getOid() {
         return oid;
@@ -56,6 +60,30 @@ public class MetaDataVersion {
 
     public void setCodeLists(List<CodeList> codeLists) {
         this.codeLists = codeLists;
+    }
+
+    public List<ConditionDef> getConditionDefs() {
+        return conditionDefs;
+    }
+
+    public void setConditionDefs(List<ConditionDef> conditionDefs) {
+        this.conditionDefs = conditionDefs;
+    }
+
+    public List<WorkflowDef> getWorkflowDefs() {
+        return workflowDefs;
+    }
+
+    public void setWorkflowDefs(List<WorkflowDef> workflowDefs) {
+        this.workflowDefs = workflowDefs;
+    }
+
+    public List<StudyEventGroupDef> getStudyEventGroupDefs() {
+        return studyEventGroupDefs;
+    }
+
+    public void setStudyEventGroupDefs(List<StudyEventGroupDef> studyEventGroupDefs) {
+        this.studyEventGroupDefs = studyEventGroupDefs;
     }
 
 }
