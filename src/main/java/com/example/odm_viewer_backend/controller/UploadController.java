@@ -5,9 +5,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
-import com.example.odm_viewer_backend.model.OdmStructure;
+import com.example.odm.generated.ODM;
+import com.example.odm.generated.Study;
+
 import com.example.odm_viewer_backend.service.OdmParser;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -48,23 +54,31 @@ public class UploadController {
             System.out.println("Size: " + fileSize + " bytes");
             System.out.println("Content type: " + contentType);
 
-            OdmStructure odmStructure = odmParserService.parseOdmFile(file);
+            ODM odmRoot = odmParserService.parseOdmFile(file);
 
-            if (odmStructure.getStudy() != null) {
-                System.out.println("ODM parsing completed - Study: " + odmStructure.getStudy().getStudyName());
-            } else if (odmStructure.getMetaDataVersion() != null) {
-                System.out.println(
-                        "ODM parsing completed - MetaDataVersion: " + odmStructure.getMetaDataVersion().getName());
+            List<Study> studies = odmRoot.getStudies();
+
+            if (!studies.isEmpty()) {
+                Study firstStudy = studies.get(0);
+                System.out.println("ODM parsing completed - Study: " + firstStudy.getStudyName());
             } else {
-                System.out.println("ODM parsing completed - No Study or MetaDataVersion found.");
+                System.out.println("ODM parsing completed - No Study element found at the root level.");
             }
 
-            return ResponseEntity.ok(odmStructure);
-
+            return ResponseEntity.ok(odmRoot);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("XML Parsing Error (JAXB): The file is not a valid ODM structure or is malformed: "
+                            + e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("I/O Error: Could not read the uploaded file: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing file: " + e.getMessage());
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
     }
 }
