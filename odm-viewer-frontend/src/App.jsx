@@ -1,23 +1,26 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import UploadForm from "./components/UploadForm";
-import TreeView from "./components/TreeView";
-import "./App.css";
+import StructureView from "./components/StructureView";
+import ClinicalView from "./components/ClinicalView";
 
-function App() {
+export default function App() {
   const [odmData, setOdmData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("structure");
+  const [showStructure, setShowStructure] = useState(true);
+  const [showClinical, setShowClinical] = useState(false);
 
   const handleUpload = async ({ file, showStructure, showClinical }) => {
     setLoading(true);
     setError(null);
     setOdmData(null);
 
+    setShowStructure(showStructure);
+    setShowClinical(showClinical);
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("showStructure", showStructure);
-    formData.append("showClinical", showClinical);
 
     try {
       const response = await fetch("http://localhost:8080/api/upload", {
@@ -25,68 +28,67 @@ function App() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text);
-      }
+      if (!response.ok) throw new Error(await response.text());
 
       const data = await response.json();
       setOdmData(data);
-      setTab("structure");
+
+      if (showClinical && !showStructure) setTab("clinical");
+      else setTab("structure");
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Something went wrong");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const splitData = (data) => {
-    if (!data) return { structure: null, clinical: null };
-
-    const structure = {};
-    const clinical = {};
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (key.toLowerCase().includes("clinical") || key.toLowerCase().includes("itemdata")) {
-        clinical[key] = value;
-      } else {
-        structure[key] = value;
-      }
-    });
-
-    return { structure, clinical };
-  };
-
-  const { structure, clinical } = splitData(odmData || {});
+  const itemDefs = odmData?.Study?.[0]?.MetaDataVersions?.[0]?.itemDeves || [];
 
   return (
-    <div className="app-container">
+    <div className="container">
       <h1>ODM Viewer</h1>
-      <UploadForm onSubmit={handleUpload} />
 
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <div className="main-layout">
+        <div className="sidebar">
+          <UploadForm onSubmit={handleUpload} loading={loading} />
 
-      {odmData && (
-        <div style={{ marginTop: 20 }}>
-          <div className="tabs">
-            <button onClick={() => setTab("structure")} disabled={tab === "structure"}>
-              Structure
-            </button>
-            <button onClick={() => setTab("clinical")} disabled={tab === "clinical"}>
-              Clinical Data
-            </button>
-          </div>
+          {loading && <div className="status-message loading">Analyzing XML...</div>}
+          {error && <div className="status-message error">{error}</div>}
 
-          <div className="tree-container">
-            {tab === "structure" && <TreeView data={structure} type="structure" />}
-            {tab === "clinical" && <TreeView data={clinical} type="clinical" />}
-          </div>
+          {odmData && (
+            <div className="tabs">
+              {showStructure && (
+                <button
+                  className={`tab-button ${tab === "structure" ? "active" : ""}`}
+                  onClick={() => setTab("structure")}
+                >
+                  Structure
+                </button>
+              )}
+              {showClinical && (
+                <button
+                  className={`tab-button ${tab === "clinical" ? "active" : ""}`}
+                  onClick={() => setTab("clinical")}
+                >
+                  Clinical
+                </button>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="content">
+          {odmData && showStructure && tab === "structure" && (
+            <StructureView data={odmData} />
+          )}
+
+          {odmData && showClinical && tab === "clinical" && (
+            <ClinicalView data={odmData} itemDefs={itemDefs} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-export default App;
+

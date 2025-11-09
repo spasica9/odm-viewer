@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 
 import com.example.odm.generated.ODM;
 import com.example.odm.generated.Study;
+import com.example.odm.generated.ClinicalData;
+import com.example.odm.generated.MetaDataVersion;
 
 import com.example.odm_viewer_backend.service.OdmParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -24,7 +29,10 @@ public class UploadController {
     private OdmParser odmParserService;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "showStructure", defaultValue = "true") boolean showStructure,
+            @RequestParam(value = "showClinical", defaultValue = "true") boolean showClinical) {
 
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file uploaded.");
@@ -48,24 +56,50 @@ public class UploadController {
         }
 
         try {
-            long fileSize = file.getSize();
-            System.out.println("Upload successful:");
-            System.out.println("File name: " + fileName);
-            System.out.println("Size: " + fileSize + " bytes");
-            System.out.println("Content type: " + contentType);
-
             ODM odmRoot = odmParserService.parseOdmFile(file);
+            Map<String, Object> filteredData = new HashMap<>();
+            filteredData.put("FileOID", odmRoot.getFileOID());
+            filteredData.put("ODMVersion", odmRoot.getODMVersion());
+            filteredData.put("CreationDateTime", odmRoot.getCreationDateTime());
+            filteredData.put("FileType", odmRoot.getFileType());
 
-            List<Study> studies = odmRoot.getStudies();
+            if (showStructure) {
+                List<Study> studies = odmRoot.getStudies();
 
-            if (!studies.isEmpty()) {
-                Study firstStudy = studies.get(0);
-                System.out.println("ODM parsing completed - Study: " + firstStudy.getStudyName());
-            } else {
-                System.out.println("ODM parsing completed - No Study element found at the root level.");
+                if (studies != null && !studies.isEmpty()) {
+                    List<Map<String, Object>> studyDataList = studies.stream().map(study -> {
+                        Map<String, Object> studyMap = new HashMap<>();
+
+                        studyMap.put("OID", study.getOID());
+                        studyMap.put("StudyName", study.getStudyName());
+                        studyMap.put("ProtocolName", study.getProtocolName());
+                        studyMap.put("VersionID", study.getVersionID());
+                        studyMap.put("VersionName", study.getVersionName());
+                        studyMap.put("Status", study.getStatus());
+
+                        List<MetaDataVersion> metaDataVersions = study.getMetaDataVersions();
+                        if (metaDataVersions != null && !metaDataVersions.isEmpty()) {
+
+                            studyMap.put("MetaDataVersions", metaDataVersions);
+                        }
+
+                        return studyMap;
+                    }).collect(Collectors.toList());
+
+                    filteredData.put("Study", studyDataList);
+                }
             }
 
-            return ResponseEntity.ok(odmRoot);
+            if (showClinical) {
+                List<ClinicalData> clinicalDataList = odmRoot.getClinicalDatas();
+
+                if (clinicalDataList != null && !clinicalDataList.isEmpty()) {
+                    filteredData.put("ClinicalData", clinicalDataList);
+                }
+            }
+
+            return ResponseEntity.ok(filteredData);
+
         } catch (JAXBException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
