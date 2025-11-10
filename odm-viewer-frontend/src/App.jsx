@@ -43,6 +43,7 @@ export default function App() {
   };
 
   const itemDefs = odmData?.Study?.[0]?.MetaDataVersions?.[0]?.itemDeves || [];
+  const codeLists = odmData?.Study?.[0]?.MetaDataVersions?.[0]?.codeLists || [];
 
   return (
     <div className="container">
@@ -83,7 +84,7 @@ export default function App() {
           )}
 
           {odmData && showClinical && tab === "clinical" && (
-            <ClinicalView data={odmData} itemDefs={itemDefs} />
+            <ClinicalView data={odmData} itemDefs={itemDefs} codeLists={codeLists} />
           )}
         </div>
       </div>

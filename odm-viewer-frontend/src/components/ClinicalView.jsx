@@ -1,97 +1,77 @@
-import "../App.css";
+import React from "react";
 
-export default function ClinicalView({ data, itemDefs, codeLists }) {
-  if (!data) return null;
+export default function ClinicalView({ data }) {
+  if (!data?.ClinicalData?.length) return <div>No clinical data</div>;
 
-  const clinicalData = data.ClinicalData || [];
+  const mdv = data.Study?.[0]?.MetaDataVersions?.[0];
+  const codeLists = mdv?.codeLists || [];
+  const itemDefs = mdv?.itemDeves || [];
+  const itemDefMap = Object.fromEntries(itemDefs.map((i) => [i.oid, i]));
+
+  const studyEventNameMap = Object.fromEntries(
+    (mdv?.studyEventDeves || []).map(se => [se.oid, se.name])
+  );
+
+  const getAnswerText = (itemOID, value) => {
+    const itemDef = itemDefMap[itemOID];
+    if (!itemDef) return value;
+    const codeListOID = itemDef.codeListRef?.codeListOID;
+    if (!codeListOID) return value;
+    const codeList = codeLists.find((cl) => cl.oid === codeListOID);
+    const codeItem = codeList?.codeListItems.find(
+      (ci) => ci.codedValue.toString() === value?.toString()
+    );
+    return codeItem?.decode?.translatedTexts?.[0]?.content?.join(" ").trim() || value;
+  };
 
   const getQuestionText = (itemOID) => {
-    const item = itemDefs?.find((i) => i.oid === itemOID);
-    if (!item) return itemOID;
-
-    if (item.question?.translatedTexts?.length) {
-      return item.question.translatedTexts[0].content.join(" ").trim();
-    }
-    if (item.description?.translatedTexts?.length) {
-      return item.description.translatedTexts[0].content.join(" ").trim();
-    }
-    return item.name || itemOID;
+    const itemDef = itemDefMap[itemOID];
+    if (!itemDef) return itemOID;
+    return itemDef.question?.translatedTexts?.[0]?.content?.join(" ").trim() || itemDef.name || itemOID;
   };
 
-  const getDisplayValue = (itemOID, value) => {
-    const item = itemDefs?.find((i) => i.oid === itemOID);
-    if (!item) return value;
-
-    if (item.dataType === "BOOLEAN") return value === true || value === "true" ? "Yes" : "No";
-
-    const codeListOID = item.codeListRef?.codeListOID;
-    if (codeListOID) {
-      const codeList = codeLists?.find((cl) => cl.oid === codeListOID);
-      if (codeList) {
-        const codeItem = codeList.codeListItems.find(
-          (ci) => ci.codedValue.toString() === value.toString()
-        );
-        if (codeItem)
-          return codeItem.decode.translatedTexts[0].content.join(" ");
+  const renderItems = (items) =>
+    items.flatMap((ig) => {
+      if (ig.itemGroupDatasAndItemDatas) {
+        return renderItems(ig.itemGroupDatasAndItemDatas);
       }
-    }
+      const question = getQuestionText(ig.itemOID);
+      const answer = ig.values?.map((v) => getAnswerText(ig.itemOID, v.value)).join(", ");
+      return [{ question, answer }];
+    });
 
-    return value;
-  };
-
-  const renderItem = (obj, level = 0) => {
-    if (!obj) return null;
-
-    const hasValues =
-      (obj.values && obj.values.length > 0) ||
-      (obj.itemGroupDatasAndItemDatas &&
-        obj.itemGroupDatasAndItemDatas.some((c) => renderItem(c, level + 1)));
-
-    if (!hasValues) return null;
-
-    return (
-      <div className={`level-${level}`} style={{ marginBottom: 4 }}>
-        {obj.values &&
-          obj.values.map((v, idx) => (
-            <div key={idx} className="tree-node clinical">
-              <span className="node-name">{getQuestionText(obj.itemOID)}:</span>{" "}
-              <span className="node-value">{getDisplayValue(obj.itemOID, v.value)}</span>
-            </div>
-          ))}
-
-        {obj.itemGroupDatasAndItemDatas &&
-          obj.itemGroupDatasAndItemDatas.map((child, idx) => (
-            <div key={idx} className="tree-children">
-              {renderItem(child, level + 1)}
-            </div>
-          ))}
-      </div>
-    );
-  };
+  const subjects = data.ClinicalData[0].subjectDatas || [];
 
   return (
     <div className="tree-card">
-      <h2 className="tree-header">Clinical Data</h2>
-      {clinicalData.length === 0 && <p>No clinical data.</p>}
+      {subjects.map((subject) => (
+        <div key={subject.subjectKey} style={{ marginBottom: "2rem" }}>
+          <h3 style={{ marginBottom: "1rem" }}>Subject: {subject.subjectKey}</h3>
 
-      {clinicalData.map((study) =>
-        (study.subjectDatas || []).map((subject) => (
-          <div key={subject.subjectKey} className="tree-node structure" style={{ marginBottom: 10 }}>
-            <strong>Subject:</strong> {subject.subjectKey}
-            {(subject.studyEventDatas || []).map((se) => (
-              <div key={se.studyEventOID} className="tree-children">
-                {se.studyEventOID && <div className="tree-node"><span className="icon">📘</span>{se.studyEventOID}</div>}
-                {(se.itemGroupDatas || []).map((ig, igIndex) => (
-                  <div key={igIndex} className="tree-children" style={{ marginBottom: 8 }}>
-                    {renderItem(ig, 1)}
+          {subject.studyEventDatas.map((se) => (
+            <div key={se.studyEventOID} style={{ marginBottom: "1.5rem" }}>
+              <h4 style={{ marginBottom: "0.5rem" }}>
+                📘 {studyEventNameMap[se.studyEventOID] || se.studyEventOID}
+              </h4>
+
+              {se.itemGroupDatas.map((ig, idx) => {
+                const items = renderItems([ig]);
+                return (
+                  <div key={idx} style={{ marginBottom: "1rem", paddingLeft: "1rem" }}>
+                    {items.map((i, index) => (
+                      <div key={index} style={{ marginBottom: "0.5rem" }}>
+                        <strong>{i.question}:</strong> {i.answer}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ))
-      )}
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
+
 
