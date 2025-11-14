@@ -36,7 +36,10 @@ export default function App() {
       if (showClinical && !showStructure) setTab("clinical");
       else setTab("structure");
     } catch (err) {
-      setError(err.message);
+    const message = err.message.includes("XML Parsing Error (JAXB)")
+    ? "XML Parsing Error: The file is not a valid ODM structure or is malformed."
+    : "An error occurred while processing the file. Please check your XML.";
+    setError(message);
     } finally {
       setLoading(false);
     }
@@ -47,14 +50,12 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>ODM Viewer</h1>
+      <div className="header-row">
+      <h1>ODM File Viewer</h1>
 
-      <div className="main-layout">
-        <div className="sidebar">
           <UploadForm onSubmit={handleUpload} loading={loading} />
-
-          {loading && <div className="status-message loading">Analyzing XML...</div>}
-          {error && <div className="status-message error">{error}</div>}
+      </div>
+         
 
           {odmData && (
             <div className="tabs">
@@ -76,18 +77,26 @@ export default function App() {
               )}
             </div>
           )}
-        </div>
+
+        {loading && <div className="status-message loading">Analyzing XML...</div>}
+        {error && <div className="status-message error">{error}</div>}
+
 
         <div className="content">
-          {odmData && showStructure && tab === "structure" && (
+          {!odmData && !loading && !error && (
+            <p className="placeholder-message">
+              Upload an ODM XML file to view its content.
+            </p>
+          )}
+
+          {odmData && tab === "structure" && showStructure && (
             <StructureView data={odmData} />
           )}
 
-          {odmData && showClinical && tab === "clinical" && (
-            <ClinicalView data={odmData} itemDefs={itemDefs} codeLists={codeLists} />
+          {odmData && tab === "clinical" && showClinical && (
+            <ClinicalView data={odmData} />
           )}
         </div>
       </div>
-    </div>
   );
 }

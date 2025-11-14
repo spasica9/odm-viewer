@@ -43,7 +43,7 @@ export default function TreeView({ data, name = "root", level = 0, type = "struc
             <div className={`tree-node ${type}`} style={{ paddingLeft: level * 20 }}>
                 <Hash size={14} className="icon" />
                 <strong className="node-name">{name}:</strong>
-                <span className="node-value">{String(data).length > 50 ? String(data).substring(0, 50) + "..." : String(data)}</span>
+                <span className="node-value">{String(data)}</span>
             </div>
         );
     }

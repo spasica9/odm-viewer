@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X } from "lucide-react";
 import "../App.css";
 
 export default function UploadForm({ onSubmit, loading }) {
   const [file, setFile] = useState(null);
-  const [showStructure, setShowStructure] = useState(true);
-  const [showClinical, setShowClinical] = useState(false);
   const [showError, setShowError] = useState(false);
 
   const handleSubmit = (e) => {
@@ -15,44 +13,37 @@ export default function UploadForm({ onSubmit, loading }) {
       return;
     }
     setShowError(false);
-    onSubmit({ file, showStructure, showClinical });
+    onSubmit({ file, showStructure: true, showClinical: true }); // uvek oba
   };
 
   return (
-    <form className="upload-card" onSubmit={handleSubmit}>
-      <h2><Upload size={24} /> Upload ODM File</h2>
-
+    <form className="upload-inline" onSubmit={handleSubmit}>
+      <label htmlFor="file-upload" className="upload-label">
+        <Upload size={18} /> Choose XML
+      </label>
       <input
+        id="file-upload"
         type="file"
         accept=".xml"
-        onChange={(e) => { setFile(e.target.files[0]); setShowError(false); }}
+        onChange={(e) => setFile(e.target.files[0])}
+        style={{ display: "none" }}
       />
       {file && (
         <div className="selected-file" title={file.name}>
           <FileText size={14} /> {file.name}
         </div>
       )}
-
-      <label>
-        <input type="checkbox" checked={showStructure} onChange={() => setShowStructure(!showStructure)} />
-        Show Structure (MetaData)
-      </label>
-      <label>
-        <input type="checkbox" checked={showClinical} onChange={() => setShowClinical(!showClinical)} />
-        Show Clinical Data
-      </label>
-
       <button type="submit" disabled={!file || loading}>
-        {loading ? "Uploading..." : "Upload File"}
+        {loading ? "Uploading..." : "Upload"}
       </button>
-
       {showError && (
-        <div className="error-message">
-          <X size={16} /> Please select a file to upload.
+        <div className="error-message-inline">
+          <X size={14} /> Please select a file.
         </div>
       )}
     </form>
   );
 }
+
 
 
