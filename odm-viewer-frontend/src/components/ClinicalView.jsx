@@ -170,10 +170,14 @@ export default function ClinicalView({ data }) {
         
         if (Array.isArray(container[key])) {
           container[key].forEach((item) => {
-            items.push(...extractAllItemData(item, newParent));
+            if (key === 'itemGroupDatas' || !item.studyEventOID) {
+              items.push(...extractAllItemData(item, newParent));
+            }
           });
         } else {
-          items.push(...extractAllItemData(container[key], newParent));
+          if (key !== 'studyEventDatas' && !container[key].studyEventOID) {
+            items.push(...extractAllItemData(container[key], newParent));
+          }
         }
       }
     }
@@ -190,7 +194,16 @@ export default function ClinicalView({ data }) {
         `${item.itemGroupOID || 'no-group'}-default`;
       
       if (!groups[key]) groups[key] = [];
-      groups[key].push(item);
+      
+      const exists = groups[key].some(existingItem => 
+        existingItem.itemOID === item.itemOID && 
+        existingItem.value === item.value &&
+        existingItem.itemGroupOID === item.itemGroupOID
+      );
+      
+      if (!exists) {
+        groups[key].push(item);
+      }
     });
     
     return Object.values(groups);
@@ -205,15 +218,12 @@ export default function ClinicalView({ data }) {
           <h3>Subject: {subject.subjectKey}</h3>
           
           {subject.studyEventDatas?.map((studyEvent, seIndex) => {
-            const allItems = [
-              ...extractAllItemData(studyEvent),
-              ...(studyEvent.itemGroupDatas || []).flatMap(formGroup => 
-                extractAllItemData(formGroup, {
-                  itemGroupOID: formGroup.itemGroupOID,
-                  itemGroupRepeatKey: formGroup.itemGroupRepeatKey
-                })
-              )
-            ];
+            const allItems = (studyEvent.itemGroupDatas || []).flatMap(formGroup => 
+              extractAllItemData(formGroup, {
+                itemGroupOID: formGroup.itemGroupOID,
+                itemGroupRepeatKey: formGroup.itemGroupRepeatKey
+              })
+            );
 
             if (allItems.length === 0) return null;
 
@@ -258,7 +268,7 @@ export default function ClinicalView({ data }) {
               const answer = getAnswerText(item.itemOID, item.value);
 
               return (
-                <div key={itemIndex} className="item-row">
+                <div key={`${item.itemOID}-${item.value}-${itemIndex}`} className="item-row">
                   <strong>{question}:</strong> 
                   <span>{answer}</span>
                   <div className="item-details">

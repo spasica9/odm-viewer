@@ -14,6 +14,8 @@
     <groupId>com.example</groupId>
     <artifactId>odm-viewer-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
     <name>odm-viewer-backend</name>
     <description>ODM Viewer project</description>
 
@@ -22,9 +24,16 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -45,18 +54,18 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>2.3.3</version> 
+            <version>2.3.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.3</version> 
-            <scope>runtime</scope> 
+            <version>2.3.3</version>
+            <scope>runtime</scope>
         </dependency>
 
     </dependencies>
@@ -66,7 +75,7 @@
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version> 
+                <version>0.14.0</version>
                 <executions>
                     <execution>
                         <id>xjc</id>
@@ -74,7 +83,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            
+
                             <generateDirectory>${project.basedir}/src/main/java</generateDirectory>
 
                             <schemaDirectory>${project.basedir}/src/main/resources/xsd</schemaDirectory>
@@ -82,17 +91,19 @@
                                 <schemaInclude>ODM.xsd</schemaInclude>
                                 <schemaInclude>ODM-xhtml.xsd</schemaInclude>
                             </schemaIncludes>
-                            
+
                             <bindingDirectory>${project.basedir}/src/main/resources/xsd</bindingDirectory>
                             <bindingIncludes>
                                 <bindingInclude>binding.xjb</bindingInclude>
                             </bindingIncludes>
-                            
+
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
+        <finalName>ROOT</finalName>
     </build>
+    
 
 </project>
