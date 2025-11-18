@@ -13,7 +13,7 @@ export default function UploadForm({ onSubmit, loading }) {
       return;
     }
     setShowError(false);
-    onSubmit({ file, showStructure: true, showClinical: true }); // uvek oba
+    onSubmit({ file, showStructure: true, showClinical: true });
   };
 
   return (
@@ -30,7 +30,8 @@ export default function UploadForm({ onSubmit, loading }) {
       />
       {file && (
         <div className="selected-file" title={file.name}>
-          <FileText size={14} /> {file.name}
+          <FileText size={14} /> 
+          <span>{file.name}</span>
         </div>
       )}
       <button type="submit" disabled={!file || loading}>

@@ -212,46 +212,54 @@ export default function ClinicalView({ data }) {
   const subjects = data.ClinicalData[0].subjectDatas || [];
   
   return (
-    <div className="tree-card">
-      {subjects.map((subject, subjectIndex) => (
-        <div key={subjectIndex} className="subject-section">
-          <h3>Subject: {subject.subjectKey}</h3>
-          
-          {subject.studyEventDatas?.map((studyEvent, seIndex) => {
-            const allItems = (studyEvent.itemGroupDatas || []).flatMap(formGroup => 
-              extractAllItemData(formGroup, {
-                itemGroupOID: formGroup.itemGroupOID,
-                itemGroupRepeatKey: formGroup.itemGroupRepeatKey
-              })
-            );
+    <div className="clinical-view">
+      <h2>Clinical Data</h2>
+      
+      <div className="scroll-container">
+        <div className="tree-card-wrapper">
+          <div className="tree-card">
+            {subjects.map((subject, subjectIndex) => (
+              <div key={subjectIndex} className="subject-section">
+                <h3>Subject: {subject.subjectKey}</h3>
+                
+                {subject.studyEventDatas?.map((studyEvent, seIndex) => {
+                  const allItems = (studyEvent.itemGroupDatas || []).flatMap(formGroup => 
+                    extractAllItemData(formGroup, {
+                      itemGroupOID: formGroup.itemGroupOID,
+                      itemGroupRepeatKey: formGroup.itemGroupRepeatKey
+                    })
+                  );
 
-            if (allItems.length === 0) return null;
+                  if (allItems.length === 0) return null;
 
-            const groupedItems = groupMatrixEntries(allItems);
+                  const groupedItems = groupMatrixEntries(allItems);
 
-            return (
-              <div key={seIndex} className="study-event-section">
-                <h4>📘 {studyEvent.studyEventOID}</h4>
-                {renderItemGroups(groupedItems)}
+                  return (
+                    <div key={seIndex} className="study-event-section">
+                      <h4>📘 {studyEvent.studyEventOID}</h4>
+                      {renderItemGroups(groupedItems)}
+                    </div>
+                  );
+                })}
+                {(!subject.studyEventDatas || subject.studyEventDatas.length === 0) && 
+                  (() => {
+                    const subjectItems = extractAllItemData(subject);
+                    if (subjectItems.length > 0) {
+                      const groupedItems = groupMatrixEntries(subjectItems);
+                      return (
+                        <div className="subject-data-section">
+                          <h4>Subject Data</h4>
+                          {renderItemGroups(groupedItems)}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
               </div>
-            );
-          })}
-          {(!subject.studyEventDatas || subject.studyEventDatas.length === 0) && 
-            (() => {
-              const subjectItems = extractAllItemData(subject);
-              if (subjectItems.length > 0) {
-                const groupedItems = groupMatrixEntries(subjectItems);
-                return (
-                  <div className="subject-data-section">
-                    <h4>Subject Data</h4>
-                    {renderItemGroups(groupedItems)}
-                  </div>
-                );
-              }
-              return null;
-            })()}
+            ))}
+          </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 

@@ -38,30 +38,36 @@ export default function StructureView({ data }) {
   return (
     <div className="structure-view">
       <h2>Structure (Metadata)</h2>
+      
+      <div className="scroll-container">
+        <div className="tree-card-wrapper">
+          <div className="tree-card">
+            {studies.map((study, sIdx) => {
+              const clinicalGroups = getClinicalGroups(study);
 
-      {studies.map((study, sIdx) => {
-        const clinicalGroups = getClinicalGroups(study);
+              return (
+                <div key={sIdx} style={{ marginBottom: "2rem" }}>
+                  <h3>Study: {study.StudyName}</h3>
 
-        return (
-          <div key={sIdx} style={{ marginBottom: "2rem" }}>
-            <h3>Study: {study.StudyName}</h3>
+                  {clinicalGroups.length > 0 && (
+                    <div style={{ marginBottom: "1rem" }}>
+                      <h4>Clinical Items</h4>
+                      {clinicalGroups.map((group, gIdx) => (
+                        <ClinicalGroup key={gIdx} group={group} />
+                      ))}
+                    </div>
+                  )}
 
-            {clinicalGroups.length > 0 && (
-              <div style={{ marginBottom: "1rem" }}>
-                <h4>Clinical Items</h4>
-                {clinicalGroups.map((group, gIdx) => (
-                  <ClinicalGroup key={gIdx} group={group} />
-                ))}
-              </div>
-            )}
-
-            <div>
-              <h4>Full Metadata Tree</h4>
-              <TreeView data={structureTree} type="structure" />
-            </div>
+                  <div>
+                    <h4>Full Metadata Tree</h4>
+                    <TreeView data={structureTree} type="structure" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        </div>
+      </div>
     </div>
   );
 }

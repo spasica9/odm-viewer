@@ -4,6 +4,8 @@
   flex-direction: column;
   align-items: flex-start;
   padding-left: 1rem;
+  background-color: #2c2c2c;
+  width: 100%;
 }
 
 body {
@@ -17,13 +19,7 @@ html {
   height: 100%;
   margin: 0;
   padding: 0;
-}
-
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  background-color: #1e1e1e;
 }
 
 .container {
@@ -32,6 +28,42 @@ html {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  box-sizing: border-box;
+  padding-right: 1rem;
+}
+
+.header-container {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 1rem;
+}
+
+
+.scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #2c2c2c;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.tree-card-wrapper {
+  min-width: min-content;
+  padding: 20px;
+}
+
+.tree-card {
+  background-color: #2c2c2c;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  max-height: 70vh;
+  overflow-y: auto;
+  min-width: 100%;
+  width: fit-content;
+}
+
+.structure-view, .clinical-view {
+  width: 100%;
 }
 
 .placeholder-message {
@@ -42,30 +74,27 @@ html {
   font-style: italic;
 }
 
-
 h1 {
     font-size: 2rem;
     color: #6c63ff;
     margin: 0;
 }
 
-
 .header-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
 }
 
 .upload-inline {
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: #2c2c2c;
-    border-radius: 10px;
-    padding: 10px 15px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    flex-wrap: wrap;
 }
 
 .upload-inline button {
@@ -77,6 +106,8 @@ h1 {
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .upload-inline button:hover {
@@ -94,6 +125,8 @@ h1 {
     color: #ccc;
     font-weight: 500;
     transition: background-color 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .upload-label:hover {
@@ -138,15 +171,7 @@ h1 {
 .content {
     text-align: left;
     margin-top: 20px;
-}
-
-.tree-card {
-    background-color: #2c2c2c;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    max-height: 70vh;
-    overflow-y: auto;
+    width: 100%;
 }
 
 .tree-header {
@@ -251,8 +276,30 @@ h1 {
         font-size: 2rem;
     }
 
-    .tree-card, .upload-card {
+    .scroll-container {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        border-radius: 0;
+    }
+    
+    .tree-card-wrapper {
         padding: 15px;
+    }
+
+    .header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .upload-inline {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+    }
+
+    .selected-file {
+        max-width: 150px;
     }
 }
 
@@ -262,6 +309,8 @@ h1 {
     display: flex;
     align-items: center;
     gap: 5px;
+      flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .selected-file {
@@ -270,6 +319,11 @@ h1 {
     gap: 6px;
     color: #ccc;
     font-size: 0.9rem;
+}
+
+.selected-file span {
+    overflow: visible;
+    white-space: nowrap;
 }
 
 .codeList-container {
@@ -318,7 +372,6 @@ h1 {
   color: #000000;
 }
 
-/* Clinical View Styles */
 .subject-section {
   margin-bottom: 2rem;
   padding: 1rem;
@@ -372,4 +425,21 @@ h1 {
   font-size: 0.8rem;
   color: #888;
   margin-top: 0.2rem;
+}
+
+@media (max-width: 480px) {
+    .upload-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .upload-label {
+        justify-content: center;
+    }
+
+    .selected-file {
+        max-width: none;
+        justify-content: center;
+    }
 }

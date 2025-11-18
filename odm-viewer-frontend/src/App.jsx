@@ -23,7 +23,7 @@ export default function App() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8080/api/upload", {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -50,53 +50,50 @@ export default function App() {
 
   return (
     <div className="container">
-      <div className="header-row">
-      <h1>ODM File Viewer</h1>
-
+      <div className="header-container">
+        <div className="header-row">
+          <h1>ODM File Viewer</h1>
           <UploadForm onSubmit={handleUpload} loading={loading} />
-      </div>
-         
-
-          {odmData && (
-            <div className="tabs">
-              {showStructure && (
-                <button
-                  className={`tab-button ${tab === "structure" ? "active" : ""}`}
-                  onClick={() => setTab("structure")}
-                >
-                  Structure
-                </button>
-              )}
-              {showClinical && (
-                <button
-                  className={`tab-button ${tab === "clinical" ? "active" : ""}`}
-                  onClick={() => setTab("clinical")}
-                >
-                  Clinical
-                </button>
-              )}
-            </div>
-          )}
-
-        {loading && <div className="status-message loading">Analyzing XML...</div>}
-        {error && <div className="status-message error">{error}</div>}
-
-
-        <div className="content">
-          {!odmData && !loading && !error && (
-            <p className="placeholder-message">
-              Upload an ODM XML file to view its content.
-            </p>
-          )}
-
-          {odmData && tab === "structure" && showStructure && (
-            <StructureView data={odmData} />
-          )}
-
-          {odmData && tab === "clinical" && showClinical && (
-            <ClinicalView data={odmData} />
-          )}
         </div>
       </div>
+
+      {odmData && (
+        <div className="tabs">
+          {showStructure && (
+            <button
+              className={`tab-button ${tab === "structure" ? "active" : ""}`}
+              onClick={() => setTab("structure")}
+            >
+              Structure
+            </button>
+          )}
+          {showClinical && (
+            <button
+              className={`tab-button ${tab === "clinical" ? "active" : ""}`}
+              onClick={() => setTab("clinical")}
+            >
+              Clinical
+            </button>
+          )}
+        </div>
+      )}
+
+      {loading && <div className="status-message loading">Analyzing XML...</div>}
+      {error && <div className="status-message error">{error}</div>}
+
+      <div className="content">
+        {!odmData && !loading && !error && (
+          <p className="placeholder-message">
+            Upload an ODM XML file to view its content.
+          </p>
+        )}
+        {odmData && tab === "structure" && showStructure && (
+          <StructureView data={odmData} />
+        )}
+        {odmData && tab === "clinical" && showClinical && (
+          <ClinicalView data={odmData} />
+        )}
+      </div>
+    </div>
   );
 }
