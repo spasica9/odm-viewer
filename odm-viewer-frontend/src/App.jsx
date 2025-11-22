@@ -7,9 +7,11 @@ export default function App() {
   const [odmData, setOdmData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tab, setTab] = useState("structure");
+
+  const [tab, setTab] = useState("clinical");
+
   const [showStructure, setShowStructure] = useState(true);
-  const [showClinical, setShowClinical] = useState(false);
+  const [showClinical, setShowClinical] = useState(true);
 
   const handleUpload = async ({ file, showStructure, showClinical }) => {
     setLoading(true);
@@ -33,13 +35,13 @@ export default function App() {
       const data = await response.json();
       setOdmData(data);
 
-      if (showClinical && !showStructure) setTab("clinical");
+      if (showClinical) setTab("clinical");
       else setTab("structure");
     } catch (err) {
-    const message = err.message.includes("XML Parsing Error (JAXB)")
-    ? "XML Parsing Error: The file is not a valid ODM structure or is malformed."
-    : "An error occurred while processing the file. Please check your XML.";
-    setError(message);
+      const message = err.message.includes("XML Parsing Error (JAXB)")
+        ? "XML Parsing Error: The file is not a valid ODM structure or is malformed."
+        : "An error occurred while processing the file. Please check your XML.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -59,20 +61,20 @@ export default function App() {
 
       {odmData && (
         <div className="tabs">
-          {showStructure && (
-            <button
-              className={`tab-button ${tab === "structure" ? "active" : ""}`}
-              onClick={() => setTab("structure")}
-            >
-              Structure
-            </button>
-          )}
           {showClinical && (
             <button
               className={`tab-button ${tab === "clinical" ? "active" : ""}`}
               onClick={() => setTab("clinical")}
             >
               Clinical
+            </button>
+          )}
+          {showStructure && (
+            <button
+              className={`tab-button ${tab === "structure" ? "active" : ""}`}
+              onClick={() => setTab("structure")}
+            >
+              Structure
             </button>
           )}
         </div>
@@ -87,11 +89,13 @@ export default function App() {
             Upload an ODM XML file to view its content.
           </p>
         )}
-        {odmData && tab === "structure" && showStructure && (
-          <StructureView data={odmData} />
-        )}
+
         {odmData && tab === "clinical" && showClinical && (
           <ClinicalView data={odmData} />
+        )}
+
+        {odmData && tab === "structure" && showStructure && (
+          <StructureView data={odmData} />
         )}
       </div>
     </div>

@@ -331,13 +331,13 @@ h1 {
 }
 
 .codeList-title {
-  color: #003366;
+  color: #a0a0ff;
   margin-bottom: 1rem;
   font-size: 1.2rem;
 }
 
 .codeList-subtitle {
-  color: #004080;
+  color: #ccc;
   margin-bottom: 0.5rem;
   font-size: 1rem;
 }
@@ -347,29 +347,30 @@ h1 {
   width: 300px;
   text-align: center;
   margin-bottom: 1rem;
+  background-color: #2c2c2c;
 }
 
 .codeList-table thead tr {
-  background-color: #003366;
+  background-color: #6c63ff;
   color: #ffffff;
 }
 
 .codeList-table th,
 .codeList-table td {
-  border: 1px solid #000;
+  border: 1px solid #555;
   padding: 6px;
 }
 
 .codeList-table tbody tr:nth-child(even) {
-  background-color: #e6f0ff;
+  background-color: #3a3a3a;
 }
 
 .codeList-table tbody tr:nth-child(odd) {
-  background-color: #cce0ff;
+  background-color: #2a2a2a;
 }
 
 .codeList-table td {
-  color: #000000;
+  color: #f0f0f0;
 }
 
 .subject-section {
@@ -442,4 +443,113 @@ h1 {
         max-width: none;
         justify-content: center;
     }
+}
+
+.clinical-view {
+    font-family: Arial, sans-serif;
+    width: 100%;
+}
+
+.clinical-view h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #555;
+    padding-bottom: 0.5rem;
+    color: #6c63ff;
+}
+
+.clinical-view .study-info {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.clinical-view .study-info strong {
+    color: #ccc;
+    font-weight: 600;
+}
+
+.clinical-view .study-info span {
+    color: #f0f0f0;
+}
+
+.subject-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background-color: #2a2a2a;
+}
+
+.subject-section h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    color: #6c63ff;
+}
+
+.study-event-section {
+    margin-left: 8px;
+    margin-bottom: 10px;
+    padding: 0.75rem;
+    background-color: #3a3a3a;
+    border-radius: 6px;
+}
+
+.study-event-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #a0a0ff;
+}
+
+.form-section {
+    margin-left: 12px;
+    margin-bottom: 6px;
+    padding-left: 0.75rem;
+    border-left: 2px solid #6c63ff;
+}
+
+.form-section h5 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #ccc;
+}
+
+.item-row {
+    margin-bottom: 0.5rem;
+    padding: 2px 0;
+    border-left: 3px solid #4CAF50;
+    background-color: #2a2a2a;
+    border-radius: 2px;
+}
+
+.item-row strong {
+    color: #f0f0f0;
+    font-weight: 600;
+}
+
+.item-row .code-list-name {
+    font-size: 10px;
+    color: #8fb3ff;
+    margin-left: 4px;
+    margin-bottom: 2px;
+}
+
+.item-row .decoded-value {
+    font-size: 13px;
+    color: #e0e0e0;
+}
+
+.item-row .raw-value {
+    color: #aaaaaa;
+    margin-left: 8px;
+    font-style: italic;
+}
+
+.item-row .item-oid {
+    font-size: 11px;
+    color: #aaaaaa;
+    margin-top: 2px;
 }
